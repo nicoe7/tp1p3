@@ -1,16 +1,19 @@
 package juego;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
 // maneja la lógica principal de la partida. 
-// le delega el manejo de la matriz a Tablero y el deshacer a Historial
+// le delega el manejo de la matriz a Tablero y el deshacer a Historial.
 public class Juego {    
     private static final int TAMANIO_POR_DEFECTO = 4;
     private Tablero tablero;
     private Historial historial;
     private Random random;
     private int proximaFicha;
+    private List<Integer> mazo = new ArrayList<>();
     
     public Juego() {
         this(TAMANIO_POR_DEFECTO);
@@ -37,6 +40,7 @@ public class Juego {
     public void reiniciar() {
         tablero.vaciarTablero();
         historial.vaciar();
+        mazo.clear();
         
         List<Posicion> libres = tablero.getCeldasLibres();
         if (libres.size() >= 2) {
@@ -129,6 +133,7 @@ public class Juego {
         
         int[][] estadoActual = tablero.copiarEstado(); 
         int fichaActual = proximaFicha;
+        List<Integer> mazoActual = new ArrayList<>(mazo);
         
         for (Direccion dir : Direccion.values()) {
             boolean movio = false;
@@ -149,9 +154,21 @@ public class Juego {
             // vuelve al tablero como estaba
             tablero.restaurarEstado(estadoActual);
             proximaFicha = fichaActual;
+            mazo = new ArrayList<>(mazoActual);
+            
         }
         
         return mejorJugada; // devuelve null si no hay jugadas posibles
+    }
+    
+    private void rellenarMazo() {
+        mazo.clear();
+        for (int i = 0; i < 4; i++) {
+            mazo.add(1);
+            mazo.add(2);
+            mazo.add(3);
+        }
+        Collections.shuffle(mazo, random);
     }
 
     public boolean deshacer() {
@@ -172,7 +189,10 @@ public class Juego {
     }
 
     private int getValorRandom() {
-        return random.nextInt(3) + 1;
+    	if (mazo.isEmpty()) {
+            rellenarMazo();
+        }
+        return mazo.remove(mazo.size() - 1);
     }
 
     @Override
